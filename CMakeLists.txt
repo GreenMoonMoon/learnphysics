@@ -15,7 +15,17 @@ FetchContent_Declare(
         GIT_PROGRESS TRUE
 )
 
+FetchContent_Declare(
+        cglm
+        GIT_REPOSITORY https://github.com/recp/cglm.git
+        GIT_TAG v0.9.2
+)
+
 FetchContent_MakeAvailable(raylib)
+if(NOT cglm_POPULATED)
+    FetchContent_Populate(cglm)
+    include_directories(${cglm_SOURCE_DIR}/include)
+endif ()
 
 add_executable(learnphysics src/main.c
         src/rigidbody.c
