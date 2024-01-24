@@ -4,12 +4,11 @@
 
 #include "rigidbody.h"
 
-typedef struct Entity {
-    Mesh mesh;
-    Material material;
-    Matrix transform;
-} Entity;
-Entity entities[2];
+#define MAT4_MATRIX(M) ((Matrix){ M[0][0],M[1][0],M[2][0],M[3][0],M[0][1],M[1][1],M[2][1],M[3][1],M[0][2],M[1][2],M[2][2],M[3][2],M[0][3],M[1][3],M[2][3],M[3][3]})
+
+static Mesh mesh;
+static Material material;
+static Rigidbody rigidbodies[2];
 
 int main() {
     InitWindow(1080, 720, "Learn Physics");
@@ -24,23 +23,35 @@ int main() {
     };
 
     // Load entities
-    entities[0] = (Entity){
-        .mesh = GenMeshCube(1.0f, 1.0f, 1.0f),
-        .material = LoadMaterialDefault(),
-        .transform = MatrixTranslate(0.0f, 2.0f, 0.0f)
-    };
-    entities[0].material.maps[MATERIAL_MAP_DIFFUSE].color = BLUE;
+    mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
+    material = LoadMaterialDefault();
+    material.maps[MATERIAL_MAP_DIFFUSE].color = BLUE;
 
-    entities[1] = (Entity){
-            .mesh = GenMeshCube(1.0f, 1.0f, 1.0f),
-            .material = LoadMaterialDefault(),
-            .transform = MatrixTranslate(0.5f, 4.0f, 0.5f)
+    rigidbodies[0] = (Rigidbody){
+        .velocity = {0.0f, -1.0f, 0.0f},
+        .transform = GLM_MAT4_IDENTITY_INIT
     };
-    entities[1].material.maps[MATERIAL_MAP_DIFFUSE].color = RED;
+    vec3 position_0 = {0.0f, 2.0f, 0.0f};
+    glm_translate(rigidbodies[0].transform, position_0);
 
+    rigidbodies[1] = (Rigidbody){
+        .velocity = {0.0f, -2.0f, 1.0f},
+        .transform = GLM_MAT4_IDENTITY_INIT
+    };
+    vec3 position_1 = {0.5f, 4.0f, 0.5f};
+    glm_translate(rigidbodies[1].transform, position_1);
+
+    // Application loop
     while(!WindowShouldClose()) {
         // Update
-//        UpdateCamera(&camera, CAMERA_FREE);
+        float delta_time = GetFrameTime();
+
+        if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+        }
+        for(int i = 0; i < 2; i++) {
+            integrate_velocity(&rigidbodies[i], delta_time);
+        }
 
         // Draw
         BeginDrawing();
@@ -50,7 +61,8 @@ int main() {
         DrawGrid(16, 1);
 
         for(int i = 0; i < 2; i++) {
-            DrawMesh(entities[i].mesh, entities[i].material, entities[i].transform);
+            const auto mat = MAT4_MATRIX(rigidbodies[i].transform);
+            DrawMesh(mesh, material, mat);
         }
 
         EndMode3D();
