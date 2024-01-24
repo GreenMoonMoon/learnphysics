@@ -28,5 +28,6 @@ if(NOT cglm_POPULATED)
 endif ()
 
 add_executable(learnphysics src/main.c
-        src/rigidbody.c)
+        src/rigidbody.c
+        src/collision.c)
 target_link_libraries(learnphysics PRIVATE raylib)
