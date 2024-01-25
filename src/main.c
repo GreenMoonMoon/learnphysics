@@ -4,6 +4,7 @@
 #include "rigidbody.h"
 #include "collision.h"
 #include "raymath.h"
+#include "utils.h"
 
 static Mesh mesh;
 static Material material;
@@ -11,14 +12,6 @@ static Rigidbody rigidbodies[2];
 static SphereCollider colliders[2];
 
 static bool paused;
-
-void reflect(vec3 vector, vec3 normal) {
-    // I - 2.0 * dot(N, I) * N
-    // where I is a vector and N the surface normal
-    vec3 n;
-    glm_vec3_scale(normal, 2.0f * glm_dot(normal, vector), n);
-    glm_vec3_sub(vector, n, vector);
-}
 
 int main() {
     InitWindow(1080, 720, "Learn Physics");
@@ -34,7 +27,7 @@ int main() {
     };
 
     // Load entities
-    mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
+    mesh = GenMeshSphere(0.5f, 8, 8);
     material = LoadMaterialDefault();
     material.maps[MATERIAL_MAP_DIFFUSE].color = BLUE;
 
@@ -56,7 +49,6 @@ int main() {
 
     // xyz is the normal, w is the offset along the normal
     vec4 ground_plane = {0.0f, 1.0f, 0.0f, 0.0f};
-    vec4 wall_plane = {0.0f, 0.0f, -1.0f, -8.0f};
 
     paused = true;
 
@@ -74,26 +66,10 @@ int main() {
         // Physic update
         if (!paused) {
             for(int i = 0; i < 2; i++) {
-                // Update forces
-                vec3 forces;
-                glm_vec2_add(forces, (float[3]){0.0f, -9.8f, 0.0f}, forces);
+                vec3 forces = GLM_VEC3_ZERO_INIT;
 
-                // Check collisions
-                Collision collision;
-                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], ground_plane, &collision)) {
-                    // resolve penetration and reflect velocity
-                    vec3 penetration;
-                    glm_vec3_scale(ground_plane, collision.depth, penetration);
-                    glm_translate(rigidbodies[i].transform, penetration);
-                    reflect(rigidbodies[i].velocity, ground_plane);
-                }
-                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], wall_plane, &collision)) {
-                    // resolve penetration and reflect velocity
-                    vec3 penetration;
-                    glm_vec3_scale(wall_plane, collision.depth, penetration);
-                    glm_translate(rigidbodies[i].transform, penetration);
-                    reflect(rigidbodies[i].velocity, wall_plane);
-                }
+                // Update forces
+                glm_vec3_add(forces, (vec3){0.0f, -9.8f, 0.0f}, forces);
 
                 // Integrate velocity
                 integrate_linear(&rigidbodies[i], forces, delta_time);
