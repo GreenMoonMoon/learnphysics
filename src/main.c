@@ -55,10 +55,6 @@ int main() {
 
     // xyz is the normal, w is the offset along the normal
     vec4 ground_plane = {0.0f, 1.0f, 0.0f, 0.0f};
-    vec4 wall_a = { 1.0f,  0.0f,  0.0f,  8.0f};
-    vec4 wall_b = {-1.0f,  0.0f,  0.0f, -8.0f};
-    vec4 wall_c = { 0.0f,  0.0f,  1.0f,  8.0f};
-    vec4 wall_d = { 0.0f,  0.0f, -1.0f, -8.0f};
 
     paused = true;
 
@@ -88,34 +84,6 @@ int main() {
                     glm_vec3_scale(ground_plane, collision.depth, penetration);
                     glm_translate(rigidbodies[i].transform, penetration);
                     reflect(rigidbodies[i].velocity, ground_plane);
-                }
-                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], wall_a, &collision)) {
-                    // resolve penetration and reflect velocity
-                    vec3 penetration;
-                    glm_vec3_scale(wall_a, collision.depth, penetration);
-                    glm_translate(rigidbodies[i].transform, penetration);
-                    reflect(rigidbodies[i].velocity, wall_a);
-                }
-                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], wall_b, &collision)) {
-                    // resolve penetration and reflect velocity
-                    vec3 penetration;
-                    glm_vec3_scale(wall_b, collision.depth, penetration);
-                    glm_translate(rigidbodies[i].transform, penetration);
-                    reflect(rigidbodies[i].velocity, wall_b);
-                }
-                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], wall_c, &collision)) {
-                    // resolve penetration and reflect velocity
-                    vec3 penetration;
-                    glm_vec3_scale(wall_c, collision.depth, penetration);
-                    glm_translate(rigidbodies[i].transform, penetration);
-                    reflect(rigidbodies[i].velocity, wall_c);
-                }
-                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], wall_d, &collision)) {
-                    // resolve penetration and reflect velocity
-                    vec3 penetration;
-                    glm_vec3_scale(wall_d, collision.depth, penetration);
-                    glm_translate(rigidbodies[i].transform, penetration);
-                    reflect(rigidbodies[i].velocity, wall_d);
                 }
 
                 // Integrate velocity
