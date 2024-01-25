@@ -29,5 +29,7 @@ endif ()
 
 add_executable(learnphysics src/main.c
         src/rigidbody.c
-        src/collision.c)
+        src/collision.c
+
+        src/raylib_utils.c)
 target_link_libraries(learnphysics PRIVATE raylib)

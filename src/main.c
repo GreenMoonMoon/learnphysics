@@ -3,6 +3,7 @@
 #include "raylib_utils.h"
 #include "rigidbody.h"
 #include "collision.h"
+#include "raymath.h"
 
 static Mesh mesh;
 static Material material;
@@ -55,6 +56,7 @@ int main() {
 
     // xyz is the normal, w is the offset along the normal
     vec4 ground_plane = {0.0f, 1.0f, 0.0f, 0.0f};
+    vec4 wall_plane = {0.0f, 0.0f, -1.0f, -8.0f};
 
     paused = true;
 
@@ -85,6 +87,13 @@ int main() {
                     glm_translate(rigidbodies[i].transform, penetration);
                     reflect(rigidbodies[i].velocity, ground_plane);
                 }
+                if(get_sphere_plane_collision(colliders[i], rigidbodies[i].transform[3], wall_plane, &collision)) {
+                    // resolve penetration and reflect velocity
+                    vec3 penetration;
+                    glm_vec3_scale(wall_plane, collision.depth, penetration);
+                    glm_translate(rigidbodies[i].transform, penetration);
+                    reflect(rigidbodies[i].velocity, wall_plane);
+                }
 
                 // Integrate velocity
                 integrate_linear(&rigidbodies[i], forces, delta_time);
@@ -97,6 +106,9 @@ int main() {
 
         BeginMode3D(camera);
         DrawGrid(16, 1);
+        DrawLine3D(Vector3Zero(), (Vector3){5.0f, 0.0f, 0.0f}, RED);
+        DrawLine3D(Vector3Zero(), (Vector3){0.0f, 5.0f, 0.0f}, GREEN);
+        DrawLine3D(Vector3Zero(), (Vector3){0.0f, 0.0f, 5.0f}, BLUE);
 
         for(int i = 0; i < 2; i++) {
             const auto mat = MAT4_TO_MATRIX(rigidbodies[i].transform);
