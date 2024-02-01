@@ -4,6 +4,7 @@
 #include "particles.h"
 #include "raymath.h"
 #include "cglm/cglm.h"
+#include "cglm/vec3-ext.h"
 
 #define FRAND(A) (float)rand()/(float)(RAND_MAX/A)
 
@@ -35,8 +36,8 @@ int main() {
     for(int i = 0; i < 25; i++) {
         particles[i] = (Particle){
             .position = {0.0f, 0.1f, 0.0f},
-            .velocity = {FRAND(5.0f) - 2.5f, 20.0f, FRAND(5.0f) - 2.5f},
-            .acceleration = {0},
+            .velocity = {FRAND(5.0f) - 2.5f, 10.0f, FRAND(5.0f) - 2.5f},
+            .force_sum =  {0},
             .inverse_mass =  1.0f
         };
     }
@@ -56,12 +57,13 @@ int main() {
         if (!paused) {
             for (int i = 0; i < 25; i++) {
                 particle_apply_forces(&particles[i], (vec3){0.0f, -10.0f, 0.0f});
-                particle_integrate(&particles[i], GetFrameTime());
+                particle_integrate(&particles[i], 0.9f, GetFrameTime());
 
                 // Simple collisisons
                 if(particles[i].position[1] <= 0.0f) {
                     particles[i].position[1] = 0.0f;
-                    vec3_reflect(particles->velocity, (vec3){0.0f, 1.0f, 0.0f}, particles->velocity);
+                    vec3_reflect(particles[i].velocity, (vec3){0.0f, 1.0f, 0.0f}, particles[i].velocity);
+                    glm_vec3_scale(particles[i].velocity, 0.75f, particles[i].velocity); // Apply restitution
                 }
             }
         }
