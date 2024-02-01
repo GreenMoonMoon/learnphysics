@@ -2,7 +2,7 @@
 // Created by josue on 2024-01-25.
 //
 
-#include "utils.h"
+#include "geometrY_utils.h"
 
 void reflect(vec3 vector, vec3 normal) {
     // I - 2.0 * dot(N, I) * N

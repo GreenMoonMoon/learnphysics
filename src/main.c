@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include "raylib.h"
 #include "raylib_utils.h"
-#include "rigidbody.h"
-#include "collision.h"
+#include "particles.h"
 #include "raymath.h"
-#include "utils.h"
+#include "cglm/cglm.h"
 
-static Mesh mesh;
-static Material material;
-static Rigidbody rigidbodies[2];
-static SphereCollider colliders[2];
+#define FRAND(A) (float)rand()/(float)(RAND_MAX/A)
 
 static bool paused;
+
+static void vec3_reflect(vec3 vector, vec3 normal, vec3 dest) {
+    // I - 2.0 * dot(N, I) * N.
+    // Based on glsl documentation.
+    glm_vec3_scale(normal, 2.0f * glm_vec3_dot(normal, vector), normal);
+    glm_vec3_sub(vector, normal, dest);
+}
 
 int main() {
     InitWindow(1080, 720, "Learn Physics");
@@ -26,31 +29,17 @@ int main() {
             .projection = CAMERA_PERSPECTIVE
     };
 
-    // Load entities
-    mesh = GenMeshSphere(0.5f, 8, 8);
-    material = LoadMaterialDefault();
-    material.maps[MATERIAL_MAP_DIFFUSE].color = BLUE;
-
-    rigidbodies[0] = (Rigidbody){
-        .velocity = {0.0f, -1.0f, 0.0f},
-        .transform = GLM_MAT4_IDENTITY_INIT
-    };
-    colliders[0] = (SphereCollider){{0}, .radius = 0.5f};
-    vec3 position_0 = {0.0f, 2.0f, 0.0f};
-    glm_translate(rigidbodies[0].transform, position_0);
-
-    rigidbodies[1] = (Rigidbody){
-        .velocity = {0.0f, -2.0f, 1.0f},
-        .transform = GLM_MAT4_IDENTITY_INIT
-    };
-    colliders[1] = (SphereCollider){{0}, .radius = 0.5f};
-    vec3 position_1 = {0.5f, 4.0f, 0.5f};
-    glm_translate(rigidbodies[1].transform, position_1);
-
-    // xyz is the normal, w is the offset along the normal
-    vec4 ground_plane = {0.0f, 1.0f, 0.0f, 0.0f};
-
     paused = true;
+
+    Particle particles[25];
+    for(int i = 0; i < 25; i++) {
+        particles[i] = (Particle){
+            .position = {0.0f, 0.1f, 0.0f},
+            .velocity = {FRAND(5.0f) - 2.5f, 20.0f, FRAND(5.0f) - 2.5f},
+            .acceleration = {0},
+            .inverse_mass =  1.0f
+        };
+    }
 
     // Application loop
     while(!WindowShouldClose()) {
@@ -65,14 +54,15 @@ int main() {
 
         // Physic update
         if (!paused) {
-            for(int i = 0; i < 2; i++) {
-                vec3 forces = GLM_VEC3_ZERO_INIT;
+            for (int i = 0; i < 25; i++) {
+                particle_apply_forces(&particles[i], (vec3){0.0f, -10.0f, 0.0f});
+                particle_integrate(&particles[i], GetFrameTime());
 
-                // Update forces
-                glm_vec3_add(forces, (vec3){0.0f, -9.8f, 0.0f}, forces);
-
-                // Integrate velocity
-                integrate_linear(&rigidbodies[i], forces, delta_time);
+                // Simple collisisons
+                if(particles[i].position[1] <= 0.0f) {
+                    particles[i].position[1] = 0.0f;
+                    vec3_reflect(particles->velocity, (vec3){0.0f, 1.0f, 0.0f}, particles->velocity);
+                }
             }
         }
 
@@ -81,15 +71,9 @@ int main() {
         ClearBackground(DARKGRAY);
 
         BeginMode3D(camera);
-        DrawGrid(16, 1);
-        DrawLine3D(Vector3Zero(), (Vector3){5.0f, 0.0f, 0.0f}, RED);
-        DrawLine3D(Vector3Zero(), (Vector3){0.0f, 5.0f, 0.0f}, GREEN);
-        DrawLine3D(Vector3Zero(), (Vector3){0.0f, 0.0f, 5.0f}, BLUE);
+        draw_grid();
 
-        for(int i = 0; i < 2; i++) {
-            const auto mat = MAT4_TO_MATRIX(rigidbodies[i].transform);
-            DrawMesh(mesh, material, mat);
-        }
+        for (int i = 0; i < 25; i++) { draw_particle(particles[i]); }
 
         EndMode3D();
 
