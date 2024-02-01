@@ -2,9 +2,7 @@
 #include "raylib.h"
 #include "raylib_utils.h"
 #include "particles.h"
-#include "raymath.h"
 #include "cglm/cglm.h"
-#include "cglm/vec3-ext.h"
 
 #define FRAND(A) (float)rand()/(float)(RAND_MAX/A)
 
@@ -59,7 +57,7 @@ int main() {
                 particle_apply_forces(&particles[i], (vec3){0.0f, -10.0f, 0.0f});
                 particle_integrate(&particles[i], 0.9f, GetFrameTime());
 
-                // Simple collisisons
+                // Simple collisions
                 if(particles[i].position[1] <= 0.0f) {
                     particles[i].position[1] = 0.0f;
                     vec3_reflect(particles[i].velocity, (vec3){0.0f, 1.0f, 0.0f}, particles[i].velocity);
