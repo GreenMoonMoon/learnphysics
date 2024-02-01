@@ -35,7 +35,6 @@ int main() {
         particles[i] = (Particle){
             .position = {0.0f, 0.1f, 0.0f},
             .velocity = {FRAND(5.0f) - 2.5f, 10.0f, FRAND(5.0f) - 2.5f},
-            .force_sum =  {0},
             .inverse_mass =  1.0f
         };
     }
@@ -54,15 +53,11 @@ int main() {
         // Physic update
         if (!paused) {
             for (int i = 0; i < 25; i++) {
-                particle_apply_forces(&particles[i], (vec3){0.0f, -10.0f, 0.0f});
+                // Add forces
+                vec3 force_sum = {0};
+                glm_vec3_add(force_sum, (vec3){0.0f, -10.0f, 0.0f}, force_sum); // Add gravity
+                particle_apply_forces(&particles[i], force_sum, GetFrameTime());
                 particle_integrate(&particles[i], 0.9f, GetFrameTime());
-
-                // Simple collisions
-                if(particles[i].position[1] <= 0.0f) {
-                    particles[i].position[1] = 0.0f;
-                    vec3_reflect(particles[i].velocity, (vec3){0.0f, 1.0f, 0.0f}, particles[i].velocity);
-                    glm_vec3_scale(particles[i].velocity, 0.75f, particles[i].velocity); // Apply restitution
-                }
             }
         }
 
