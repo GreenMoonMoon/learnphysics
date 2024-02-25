@@ -3,6 +3,11 @@
 //
 #include "raylib_utils.h"
 #include "raymath.h"
+#include "rlgl.h"
+
+void set_line_width(float width) {
+    rlSetLineWidth(width);
+}
 
 void draw_grid(void) {
     DrawGrid(16, 1);

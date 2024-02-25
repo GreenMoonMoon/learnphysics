@@ -21,7 +21,14 @@ FetchContent_Declare(
         GIT_TAG v0.9.2
 )
 
+#FetchContent_Declare(
+#        flecs
+#        GIT_REPOSITORY
+#        GIT_TAG
+#)
+
 FetchContent_MakeAvailable(raylib)
+# Make CGLM available
 if(NOT cglm_POPULATED)
     FetchContent_Populate(cglm)
     include_directories(${cglm_SOURCE_DIR}/include)

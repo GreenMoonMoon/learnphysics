@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "raylib.h"
 #include "raylib_utils.h"
 #include "particles.h"
@@ -6,21 +5,17 @@
 
 #define FRAND(A) (float)rand()/(float)(RAND_MAX/A)
 
+static Camera3D camera;
 static bool paused;
 
-static void vec3_reflect(vec3 vector, vec3 normal, vec3 dest) {
-    // I - 2.0 * dot(N, I) * N.
-    // Based on glsl documentation.
-    glm_vec3_scale(normal, 2.0f * glm_vec3_dot(normal, vector), normal);
-    glm_vec3_sub(vector, normal, dest);
-}
-
-int main() {
+void init(void) {
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1080, 720, "Learn Physics");
     SetTargetFPS(60);
+    set_line_width(2.0f);
 
     // Initialize camera
-    Camera3D camera = {
+    camera = (Camera3D){
             .position = {0.0f, 3.0f, -8.0f},
             .up = {0.0f, 1.0f, 0.0f},
             .target = {0},
@@ -29,6 +24,21 @@ int main() {
     };
 
     paused = true;
+}
+
+void process_inputs(void) {
+    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) || GetMouseWheelMove() != 0.0f) {
+        UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+    }
+    if(IsKeyPressed(KEY_SPACE)) paused = !paused;
+}
+
+void cleanup(void) {
+    CloseWindow();
+}
+
+int main() {
+    init();
 
     Particle particles[25];
     for(int i = 0; i < 25; i++) {
@@ -43,12 +53,7 @@ int main() {
     while(!WindowShouldClose()) {
         // Update
         float delta_time = GetFrameTime();
-
-        // Inputs
-        if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-            UpdateCamera(&camera, CAMERA_THIRD_PERSON);
-        }
-        if(IsKeyPressed(KEY_SPACE)) paused = !paused;
+        process_inputs();
 
         // Physic update
         if (!paused) {
@@ -78,6 +83,6 @@ int main() {
         EndDrawing();
     }
 
-    CloseWindow();
+    cleanup();
     return 0;
 }
