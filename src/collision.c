@@ -3,6 +3,7 @@
 //
 
 #include "collision.h"
+#include "cglm/cglm.h"
 
 
 bool get_sphere_plane_collision(SphereCollider a, vec3 position, vec4 plane, Collision* out_collision) {
@@ -13,6 +14,10 @@ bool get_sphere_sphere_collision(SphereCollider a, SphereCollider b, Collision *
     return false;
 }
 
-Vector3 get_ray_plane_intersection(RayPrimitive ray, PlanePrimitive plane) {
-    return Vector3Zero();
+bool get_ray_plane_intersection(RayPrimitive ray, PlanePrimitive plane, vec3 result) {
+    float distance = (plane.distance - glm_vec3_dot(plane.normal, ray.origin)) / glm_vec3_dot(plane.normal, ray.direction);
+
+    glm_vec3_scale(ray.direction, distance, result);
+    glm_vec3_add(ray.origin, result, result);
+    return true;
 }

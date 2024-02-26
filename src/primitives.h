@@ -12,6 +12,7 @@ typedef struct RayPrimitive {
     vec3 direction;
 } RayPrimitive;
 
+/// \brief A plane representation in the form of (n⋅X)=d.
 typedef struct PlanePrimitive {
     vec3 normal;
     float distance;

@@ -43,18 +43,21 @@ void process_inputs(void) {
     // General
     if(IsKeyPressed(KEY_SPACE)) paused = !paused;
 
-    // Test add cube
-    Ray in_ray = GetMouseRay(GetMousePosition(), camera);
-    RayPrimitive ray = {.origin = {in_ray.position.x, in_ray.position.y, in_ray.position.z},
-                        .direction = {in_ray.direction.x, in_ray.direction.y, in_ray.direction.z}};
-    Vector3 intersection_point = get_ray_plane_intersection(ray, xz_plane);
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        add_rectangle_gizmo = (AddRectangleGizmo){0};
-        add_rectangle_gizmo.start = (Vector2){intersection_point.x, intersection_point.z};
-        add_rectangle_gizmo.end = add_rectangle_gizmo.start;
-    }
+    // Test mouse ray and default plane intersection
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        add_rectangle_gizmo.end = (Vector2){intersection_point.x, intersection_point.z};
+        Ray in_ray = GetMouseRay(GetMousePosition(), camera);
+        RayPrimitive ray = {.origin = {in_ray.position.x, in_ray.position.y, in_ray.position.z},
+                            .direction = {in_ray.direction.x, in_ray.direction.y, in_ray.direction.z}};
+        vec3 intersection_point;
+        if (get_ray_plane_intersection(ray, xz_plane, intersection_point)) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                add_rectangle_gizmo = (AddRectangleGizmo) {0};
+                add_rectangle_gizmo.start = (Vector2) {intersection_point[0], intersection_point[2]};
+                add_rectangle_gizmo.end = add_rectangle_gizmo.start;
+            }
+
+            add_rectangle_gizmo.end = (Vector2) {intersection_point[0], intersection_point[2]};
+        }
     }
 }
 
