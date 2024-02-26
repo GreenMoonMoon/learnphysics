@@ -39,8 +39,10 @@ add_executable(learnphysics src/main.c
         src/collision.c
         src/geometry_utils.c
         src/particles.c
+        src/primitives.c
 
-        src/raylib_utils.c)
+        src/raylib_utils.c
+        src/gizmos.c)
 target_link_libraries(learnphysics PRIVATE raylib)
 
 add_subdirectory(tests)

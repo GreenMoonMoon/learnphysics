@@ -1,12 +1,18 @@
 #include "raylib.h"
 #include "raylib_utils.h"
-#include "particles.h"
 #include "cglm/cglm.h"
+
+#include "gizmos.h"
+#include "collision.h"
 
 #define FRAND(A) (float)rand()/(float)(RAND_MAX/A)
 
 static Camera3D camera;
 static bool paused;
+
+// TEST GIZMOS
+static AddRectangleGizmo add_rectangle_gizmo;
+const PlanePrimitive xz_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
 
 /// \brief Initialize application and render layer
 void init(void) {
@@ -29,10 +35,27 @@ void init(void) {
 
 /// \brief Process application inputs
 void process_inputs(void) {
-    if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) || GetMouseWheelMove() != 0.0f) {
+    // View
+    if(IsMouseButtonDown(MOUSE_BUTTON_MIDDLE) || GetMouseWheelMove() != 0.0f) {
         UpdateCamera(&camera, CAMERA_THIRD_PERSON);
     }
+
+    // General
     if(IsKeyPressed(KEY_SPACE)) paused = !paused;
+
+    // Test add cube
+    Ray in_ray = GetMouseRay(GetMousePosition(), camera);
+    RayPrimitive ray = {.origin = {in_ray.position.x, in_ray.position.y, in_ray.position.z},
+                        .direction = {in_ray.direction.x, in_ray.direction.y, in_ray.direction.z}};
+    Vector3 intersection_point = get_ray_plane_intersection(ray, xz_plane);
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        add_rectangle_gizmo = (AddRectangleGizmo){0};
+        add_rectangle_gizmo.start = (Vector2){intersection_point.x, intersection_point.z};
+        add_rectangle_gizmo.end = add_rectangle_gizmo.start;
+    }
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        add_rectangle_gizmo.end = (Vector2){intersection_point.x, intersection_point.z};
+    }
 }
 
 /// \brief Application loop
@@ -53,6 +76,8 @@ void run(void) {
 
         BeginMode3D(camera);
         draw_grid();
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) { add_rectangle_gizmo_draw(add_rectangle_gizmo, GREEN); }
 
         EndMode3D();
 
