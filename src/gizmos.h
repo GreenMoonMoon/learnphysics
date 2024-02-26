@@ -20,6 +20,6 @@ typedef struct AddCubeGizmo {
     float height_end;
 } AddCubeGizmo;
 
-void draw_aabb_on_gizmo(Plane plane, AABB aabb, Color color);
+void draw_aabb_on_plane_gizmo(const Plane plane, const AABB aabb, const Color color);
 
 #endif //GIZMOS_H

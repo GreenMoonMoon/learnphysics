@@ -106,11 +106,65 @@ void add_cube_gizmo_draw(const AddCubeGizmo gizmo, const Color color) {
     rlPopMatrix();
 }
 
-void draw_aabb_on_gizmo(const Plane plane, const AABB aabb, const Color color) {
-    rlPushMatrix();
-//    rlTranslatef(gizmo.start.x, 0.0f, gizmo.start.y);
-
+void draw_aabb_on_plane_gizmo(const Plane plane, const AABB aabb, const Color color) {
     rlBegin(RL_LINES);
     rlColor4ub(color.r, color.g, color.b, color.a);
+
+    // Front face
+    //------------------------------------------------------------------
+    // Bottom line
+    rlVertex3f(aabb.min[0], aabb.min[1], aabb.max[2]);  // Bottom left
+    rlVertex3f(aabb.max[0], aabb.min[1], aabb.max[2]);  // Bottom right
+
+    // Left line
+    rlVertex3f(aabb.max[0], aabb.min[1], aabb.max[2]);  // Bottom right
+    rlVertex3f(aabb.max[0], aabb.max[1], aabb.max[2]);  // Top right
+
+    // Top line
+    rlVertex3f(aabb.max[0], aabb.max[1], aabb.max[2]);  // Top right
+    rlVertex3f(aabb.min[0], aabb.max[1], aabb.max[2]);  // Top left
+
+    // Right line
+    rlVertex3f(aabb.min[0], aabb.max[1], aabb.max[2]);  // Top left
+    rlVertex3f(aabb.min[0], aabb.min[1], aabb.max[2]);  // Bottom left
+
+    // Back face
+    //------------------------------------------------------------------
+    // Bottom line
+    rlVertex3f(aabb.min[0], aabb.min[1], aabb.min[2]);  // Bottom left
+    rlVertex3f(aabb.max[0], aabb.min[1], aabb.min[2]);  // Bottom right
+
+    // Left line
+    rlVertex3f(aabb.max[0], aabb.min[1], aabb.min[2]);  // Bottom right
+    rlVertex3f(aabb.max[0], aabb.max[1], aabb.min[2]);  // Top right
+
+    // Top line
+    rlVertex3f(aabb.max[0], aabb.max[1], aabb.min[2]);  // Top right
+    rlVertex3f(aabb.min[0], aabb.max[1], aabb.min[2]);  // Top left
+
+    // Right line
+    rlVertex3f(aabb.min[0], aabb.max[1], aabb.min[2]);  // Top left
+    rlVertex3f(aabb.min[0], aabb.min[1], aabb.min[2]);  // Bottom left
+
+    // Top face
+    //------------------------------------------------------------------
+    // Left line
+    rlVertex3f(aabb.min[0], aabb.max[1], aabb.max[2]);  // Top left front
+    rlVertex3f(aabb.min[0], aabb.max[1], aabb.min[2]);  // Top left back
+
+    // Right line
+    rlVertex3f(aabb.max[0], aabb.max[1], aabb.max[2]);  // Top right front
+    rlVertex3f(aabb.max[0], aabb.max[1], aabb.min[2]);  // Top right back
+
+    // Bottom face
+    //------------------------------------------------------------------
+    // Left line
+    rlVertex3f(aabb.min[0], aabb.min[1], aabb.max[2]);  // Top left front
+    rlVertex3f(aabb.min[0], aabb.min[1], aabb.min[2]);  // Top left back
+
+    // Right line
+    rlVertex3f(aabb.max[0], aabb.min[1], aabb.max[2]);  // Top right front
+    rlVertex3f(aabb.max[0], aabb.min[1], aabb.min[2]);  // Top right back
+
     rlEnd();
 }
