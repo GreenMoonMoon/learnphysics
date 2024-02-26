@@ -25,5 +25,5 @@ bool get_sphere_plane_collision(SphereCollider a, vec3 position, vec4 plane, Col
 bool get_sphere_sphere_collision(SphereCollider a, SphereCollider b, Collision *out_collision);
 
 /// \brief Retrieve the intersection point of a ray and a plane.
-bool get_ray_plane_intersection(RayPrimitive ray, PlanePrimitive plane, vec3 result);
+bool get_ray_plane_intersection(RayPrimitive ray, Plane plane, vec3 result);
 #endif //COLLISION_H

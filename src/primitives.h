@@ -14,12 +14,13 @@ typedef struct RayPrimitive {
 } RayPrimitive;
 
 /// \brief A plane representation in the form of (n⋅X)=d.
-typedef struct PlanePrimitive {
+typedef struct Plane {
     vec3 normal;
     float distance;
-} PlanePrimitive;
+} Plane;
 
-// COLLIDERS
+// BOUNDING VOLUME
+/// \brief Axis-Aligned Bounding Box composed of the lower bottom-near point and the high top-far point.
 typedef struct AABB {
     vec3 min;
     vec3 max;

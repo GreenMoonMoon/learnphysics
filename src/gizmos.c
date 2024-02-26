@@ -106,7 +106,7 @@ void add_cube_gizmo_draw(const AddCubeGizmo gizmo, const Color color) {
     rlPopMatrix();
 }
 
-void draw_aabb_on_gizmo(const PlanePrimitive plane, const AABB aabb, const Color color) {
+void draw_aabb_on_gizmo(const Plane plane, const AABB aabb, const Color color) {
     rlPushMatrix();
 //    rlTranslatef(gizmo.start.x, 0.0f, gizmo.start.y);
 

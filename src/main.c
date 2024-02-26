@@ -13,12 +13,14 @@ static bool paused;
 
 static Matrix *cubes = NULL;
 
-const PlanePrimitive xz_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
+const Plane ground_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
 
 // TEST GIZMOS
 // "Add cube" tool
 static struct {
-    uint8_t step;
+    AABB rectangle;
+    Plane plane;
+    uint8_t step; // step == 0 is inactive
 } add_cube_tool = {0};
 
 void instanciateCube(Vector3 size, Vector3 position) {
@@ -58,10 +60,20 @@ void processInputs(void) {
     // General
     if(IsKeyPressed(KEY_SPACE)) paused = !paused;
 
-    // Update Mouse ray
+    // Get mouse ray for future calculations
     Ray in_ray = GetMouseRay(GetMousePosition(), camera);
     RayPrimitive ray = {.origin = {in_ray.position.x, in_ray.position.y, in_ray.position.z},
             .direction = {in_ray.direction.x, in_ray.direction.y, in_ray.direction.z}};
+
+    // TOOLS
+    // Update "Add Cube" tool
+    if(!add_cube_tool.step && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // Activate tool
+        add_cube_tool.step++; // Go to the initial "active" step.
+
+        add_cube_tool.plane = ground_plane;
+    }
+
+
     vec3 intersection_point;
     if(get_ray_plane_intersection(ray, xz_plane, intersection_point)) {
 
