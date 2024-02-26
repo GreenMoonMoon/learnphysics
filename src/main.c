@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "raylib_utils.h"
+#include "utils/stb_ds.h"
 #include "cglm/cglm.h"
 
 #include "gizmos.h"
@@ -10,9 +11,23 @@
 static Camera3D camera;
 static bool paused;
 
-// TEST GIZMOS
-static AddRectangleGizmo add_rectangle_gizmo;
+static Matrix *cubes = NULL;
+
 const PlanePrimitive xz_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
+
+// TEST GIZMOS
+// "Add cube" tool
+static struct {
+    uint8_t step;
+} add_cube_tool = {0};
+
+void instanciateCube(Vector3 size, Vector3 position) {
+    Matrix transform = MatrixIdentity();
+    transform = MatrixMultiply(transform, MatrixScale(size.x, size.y, size.z));
+    transform = MatrixMultiply(transform, MatrixTranslate(position.x, position.y, position.z));
+
+    arrpush(cubes, transform);
+}
 
 /// \brief Initialize application and render layer
 void init(void) {
@@ -34,7 +49,7 @@ void init(void) {
 }
 
 /// \brief Process application inputs
-void process_inputs(void) {
+void processInputs(void) {
     // View
     if(IsMouseButtonDown(MOUSE_BUTTON_MIDDLE) || GetMouseWheelMove() != 0.0f) {
         UpdateCamera(&camera, CAMERA_THIRD_PERSON);
@@ -43,31 +58,55 @@ void process_inputs(void) {
     // General
     if(IsKeyPressed(KEY_SPACE)) paused = !paused;
 
-    // Test mouse ray and default plane intersection
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-        Ray in_ray = GetMouseRay(GetMousePosition(), camera);
-        RayPrimitive ray = {.origin = {in_ray.position.x, in_ray.position.y, in_ray.position.z},
-                            .direction = {in_ray.direction.x, in_ray.direction.y, in_ray.direction.z}};
-        vec3 intersection_point;
-        if (get_ray_plane_intersection(ray, xz_plane, intersection_point)) {
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                add_rectangle_gizmo = (AddRectangleGizmo) {0};
-                add_rectangle_gizmo.start = (Vector2) {intersection_point[0], intersection_point[2]};
-                add_rectangle_gizmo.end = add_rectangle_gizmo.start;
-            }
+    // Update Mouse ray
+    Ray in_ray = GetMouseRay(GetMousePosition(), camera);
+    RayPrimitive ray = {.origin = {in_ray.position.x, in_ray.position.y, in_ray.position.z},
+            .direction = {in_ray.direction.x, in_ray.direction.y, in_ray.direction.z}};
+    vec3 intersection_point;
+    if(get_ray_plane_intersection(ray, xz_plane, intersection_point)) {
 
-            add_rectangle_gizmo.end = (Vector2) {intersection_point[0], intersection_point[2]};
+        // Update "Add Cube" tool.
+        switch (add_cube_tool.step) {
+            case 1:  // Base rect step
+                add_cube_tool.gizmo.end = (Vector2){intersection_point[0], intersection_point[2]};
+                if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+                    add_cube_tool.gizmo.height_start = GetMousePosition().y;
+                    add_cube_tool.step = 2;
+                }
+                break;
+            case 2:  // Height step
+                add_cube_tool.gizmo.height_end = GetMousePosition().y;
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                    instanciateCube();
+                    add_cube_tool.step = 0;
+                }
+                break;
+            default: // uninitialized
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { // Initialize tool
+                    add_cube_tool.step = 1;
+                    add_cube_tool.gizmo = (AddCubeGizmo) {
+                            .start = (Vector2) {intersection_point[0], intersection_point[2]},
+                            .end = (Vector2) {intersection_point[0], intersection_point[2]},
+                            .height_start = 0.0f,
+                            .height_end = 0.0f
+                    };
+                }
         }
     }
 }
 
 /// \brief Application loop
 void run(void) {
+    // Application loop constants
+    // initialize cube mesh and material as constant
+    const Mesh cube_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
+    const Material cube_material = LoadMaterialDefault();
+
     // Application loop
     while(!WindowShouldClose()) {
         // Update
         float delta_time = GetFrameTime();
-        process_inputs();
+        processInputs();
 
         // Physic update
         if (!paused) {
@@ -80,7 +119,8 @@ void run(void) {
         BeginMode3D(camera);
         draw_grid();
 
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) { add_rectangle_gizmo_draw(add_rectangle_gizmo, GREEN); }
+        // Draw cube primitives
+        DrawMeshInstanced(cube_mesh, cube_material, cubes, arrlen(cubes));
 
         EndMode3D();
 
@@ -93,6 +133,8 @@ void run(void) {
 
 /// \brief Cleanup application and render layer just before exiting
 void cleanup(void) {
+    arrfree(cubes);
+
     CloseWindow();
 }
 
@@ -101,5 +143,6 @@ int main() {
     init();
     run();
     cleanup();
+
     return 0;
 }

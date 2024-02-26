@@ -7,6 +7,7 @@
 
 #include "cglm/cglm.h"
 
+/// \brief Simple ray composed of an origin and a direction used for intersection tests
 typedef struct RayPrimitive {
     vec3 origin;
     vec3 direction;
@@ -17,5 +18,11 @@ typedef struct PlanePrimitive {
     vec3 normal;
     float distance;
 } PlanePrimitive;
+
+// COLLIDERS
+typedef struct AABB {
+    vec3 min;
+    vec3 max;
+} AABB;
 
 #endif //PRIMITIVES_H
