@@ -13,13 +13,16 @@ static struct {
     uint8_t step; // step == 0 is inactive
 } add_rectangle_tool = {0};
 
-void addRectangleUpdate(const RayPrimitive mouse_ray, const Plane ground_plane, const Camera3D camera) {
+void addRectangleToolInit(const Plane base_plane) {
+    add_rectangle_tool.plane = base_plane;
+}
+
+bool addRectangleTool(const RayPrimitive mouse_ray, const Camera3D camera, AddRectangleParam *param) {
     if (!add_rectangle_tool.step) { // Activate tool
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-            get_ray_plane_intersection(mouse_ray, ground_plane, add_rectangle_tool.intersection_point)) {
+            get_ray_plane_intersection(mouse_ray, add_rectangle_tool.plane, add_rectangle_tool.intersection_point)) {
             add_rectangle_tool.step++; // Go to the initial "active" step.
             // Initial values
-            add_rectangle_tool.plane = ground_plane;
             glm_vec3_copy(add_rectangle_tool.intersection_point,
                           add_rectangle_tool.rectangle.min);
             glm_vec3_copy(add_rectangle_tool.intersection_point,
@@ -59,7 +62,9 @@ void addRectangleUpdate(const RayPrimitive mouse_ray, const Plane ground_plane, 
                     add_rectangle_tool.step = 0; // clear tool
                     vec3 size;
                     glm_vec3_sub(add_rectangle_tool.rectangle.max, add_rectangle_tool.rectangle.min, size);
-//                    instanciateCube(add_rectangle_tool.rectangle.min, size);
+                    glm_vec3_copy(add_rectangle_tool.rectangle.min, param->position);
+                    glm_vec3_sub(add_rectangle_tool.rectangle.max, add_rectangle_tool.rectangle.min, param->size);
+                    return true;
                 }
                 break;
         }
@@ -68,10 +73,12 @@ void addRectangleUpdate(const RayPrimitive mouse_ray, const Plane ground_plane, 
         if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)){
             add_rectangle_tool.step = 0;
         }
+
     }
+    return false;
 }
 
-void addRectangleDraw() {
+void addRectangleToolDraw() {
     // Draw "Add Rectangle" gizmo
     if (add_rectangle_tool.step) {
         draw_aabb_on_plane_gizmo(add_rectangle_tool.plane, add_rectangle_tool.rectangle, GREEN);

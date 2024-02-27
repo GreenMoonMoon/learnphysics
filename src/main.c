@@ -1,16 +1,14 @@
 #include "raylib.h"
 #include "raylib_utils.h"
-
 #define RLIGHTS_IMPLEMENTATION
 #include "rlights.h"
 
 #include "collision.h"
+
+#include "tools.h"
 #define STB_DS_IMPLEMENTATION
 #include "utils/stb_ds.h"
 
-#include "tools.h"
-
-#define FRAND(A) (float)rand()/(float)(RAND_MAX/A)
 
 static Camera3D camera;
 static bool paused;
@@ -23,10 +21,14 @@ static Material cube_material;
 
 void instantiateCube(vec3 position, vec3 size) {
     Matrix transform = MatrixIdentity();
-    transform = MatrixMultiply(transform, MatrixTranslate(position[0], position[1], position[2]));
+    vec3 half_size;
+    glm_vec3_scale(size, 0.5f, half_size);
+    glm_vec3_abs(size, size);
     transform = MatrixMultiply(transform, MatrixScale(size[0], size[1], size[2]));
-
-            arrput(cubes, transform);
+    transform = MatrixMultiply(transform, MatrixTranslate(position[0] - half_size[0],
+                                                          position[1] - half_size[1],
+                                                          position[2] - half_size[2]));
+    arrput(cubes, transform);
 }
 
 /// \brief Initialize application and render layer
@@ -70,6 +72,8 @@ void init(void) {
     // Initialise Lights
     Light lights[MAX_LIGHTS] = { 0 };
     lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), WHITE, cube_shader);
+
+    addRectangleToolInit(ground_plane);
 }
 
 /// \brief Process application inputs
@@ -89,8 +93,10 @@ void processInputs(void) {
 
     // TOOLS
     // Add Rectangle
-    addRectangleUpdate(mouse_ray, ground_plane, camera);
-
+    AddRectangleParam param;
+    if(addRectangleTool(mouse_ray, camera, &param)) {
+        instantiateCube(param.position, param.size);
+    };
 }
 
 /// \brief Application loop
@@ -112,7 +118,7 @@ void run(void) {
         BeginMode3D(camera);
         draw_grid();
 
-        addRectangleDraw();
+        addRectangleToolDraw();
 
         // Draw cube primitives
         if(cubes != NULL){ DrawMeshInstanced(cube_mesh, cube_material, cubes, arrlen(cubes)); }
