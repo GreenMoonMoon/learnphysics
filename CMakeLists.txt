@@ -40,6 +40,7 @@ add_executable(learnphysics src/main.c
         src/geometry_utils.c
         src/particles.c
         src/primitives.c
+        src/tools.c
 
         src/raylib_utils.c
         src/gizmos.c)
