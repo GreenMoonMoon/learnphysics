@@ -10,7 +10,9 @@
 #include "tools.h"
 #define STB_DS_IMPLEMENTATION
 #include "utils/stb_ds.h"
+
 #include "scene.h"
+#include "resources.h"
 
 static Camera3D camera;
 
@@ -56,6 +58,8 @@ void init(void) {
     paused = true;
 
     // SCENE
+    // Load resources
+
 
     // Initialize models
     Mesh cube_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);

@@ -10,15 +10,8 @@ set(BUILD_GAMES OFF CACHE BOOL "" FORCE) # don't build the supplied example game
 
 FetchContent_Declare(
         raylib
-        GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
+        GIT_REPOSITORY https://github.com/raysan5/raylib.git
         GIT_TAG 5.0
-        GIT_PROGRESS TRUE
-)
-
-FetchContent_Declare(
-        rres
-        GIT_REPOSITORY https://github.com/raysan5/rres.git
-        GIT_TAG 1.2.0
         GIT_PROGRESS TRUE
 )
 
@@ -34,7 +27,7 @@ FetchContent_Declare(
         GIT_TAG v3.2.11
 )
 
-FetchContent_MakeAvailable(raylib rres flecs)
+FetchContent_MakeAvailable(raylib flecs)
 # Make CGLM available
 if(NOT cglm_POPULATED)
     FetchContent_Populate(cglm)
@@ -51,6 +44,8 @@ add_executable(learnphysics src/main.c
         src/particles.c
         src/primitives.c
         src/tools.c
+        src/resources.c
+        src/scene.c
 
         src/raylib_utils.c
         src/gizmos.c)
