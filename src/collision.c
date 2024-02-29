@@ -21,3 +21,7 @@ bool get_ray_plane_intersection(RayPrimitive ray, Plane plane, vec3 result) {
     glm_vec3_add(ray.origin, result, result);
     return true;
 }
+
+bool get_collision_ray_aabb(RayPrimitive ray, AABB aabb, Collision* collisions) {
+    return false;
+}

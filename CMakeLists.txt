@@ -16,23 +16,33 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+        rres
+        GIT_REPOSITORY https://github.com/raysan5/rres.git
+        GIT_TAG 1.2.0
+        GIT_PROGRESS TRUE
+)
+
+FetchContent_Declare(
         cglm
         GIT_REPOSITORY https://github.com/recp/cglm.git
         GIT_TAG v0.9.2
 )
 
-#FetchContent_Declare(
-#        flecs
-#        GIT_REPOSITORY
-#        GIT_TAG
-#)
+FetchContent_Declare(
+        flecs
+        GIT_REPOSITORY https://github.com/SanderMertens/flecs.git
+        GIT_TAG v3.2.11
+)
 
-FetchContent_MakeAvailable(raylib)
+FetchContent_MakeAvailable(raylib rres flecs)
 # Make CGLM available
 if(NOT cglm_POPULATED)
     FetchContent_Populate(cglm)
     include_directories(${cglm_SOURCE_DIR}/include)
 endif ()
+
+# Make flecs headers available
+include_directories(${flecs_SOURCE_DIR}/include)
 
 add_executable(learnphysics src/main.c
         src/rigidbody.c
@@ -44,6 +54,6 @@ add_executable(learnphysics src/main.c
 
         src/raylib_utils.c
         src/gizmos.c)
-target_link_libraries(learnphysics PRIVATE raylib)
+target_link_libraries(learnphysics PRIVATE raylib flecs::flecs_static)
 
 add_subdirectory(tests)
