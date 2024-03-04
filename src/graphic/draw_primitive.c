@@ -12,17 +12,34 @@ void draw_plane(Plane plane, const Color color) {
         // Create translation matrix from normal and distance
 
         // Draw plane
-        rlBegin(RL_QUADS);
-            rlColor4ub(color.r, color.g, color.b, color.a);
-            rlNormal3f(0.0f, 1.0f, 0.0f);
-
-            rlVertex3f(-1.0f, 0.0f, -1.0f);
-            rlVertex3f(-1.0f, 0.0f, 1.0f);
-            rlVertex3f(1.0f, 0.0f, 1.0f);
-            rlVertex3f(1.0f, 0.0f, -1.0f);
-        rlEnd();
-        // Draw normal
         rlBegin(RL_LINES);
+            // Draw plane
+            rlColor4ub(color.r, color.g, color.b, color.a);
+            rlVertex3f(-2.0f, 0.0f, -2.0f);
+            rlVertex3f(-2.0f, 0.0f, 2.0f);
+
+            rlVertex3f(-2.0f, 0.0f, 2.0f);
+            rlVertex3f(2.0f, 0.0f, 2.0f);
+
+            rlVertex3f(2.0f, 0.0f, 2.0f);
+            rlVertex3f(2.0f, 0.0f, -2.0f);
+
+            rlVertex3f(2.0f, 0.0f, -2.0f);
+            rlVertex3f(-2.0f, 0.0f, -2.0f);
+
+            rlVertex3f(-2.5f, 0.0f, -2.5f);
+            rlVertex3f(-2.5f, 0.0f, 2.5f);
+
+            rlVertex3f(-2.5f, 0.0f, 2.5f);
+            rlVertex3f(2.5f, 0.0f, 2.5f);
+
+            rlVertex3f(2.5f, 0.0f, 2.5f);
+            rlVertex3f(2.5f, 0.0f, -2.5f);
+
+            rlVertex3f(2.5f, 0.0f, -2.5f);
+            rlVertex3f(-2.5f, 0.0f, -2.5f);
+
+            // Draw normal
             rlVertex3f(0.0f, 0.0f, 0.0f);
             rlVertex3f(0.0f, 2.0f, 0.0f);
         rlEnd();

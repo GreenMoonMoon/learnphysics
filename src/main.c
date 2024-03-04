@@ -11,15 +11,19 @@
 #define STB_DS_IMPLEMENTATION
 #include "utils/stb_ds.h"
 
-#include "scene.h"
-#include "resources.h"
+#include "graphic/draw_primitive.h"
 
 static Camera3D camera;
 
 static ecs_world_t *world;
 
+// Declare components
 ECS_COMPONENT_DECLARE(Plane);
 ECS_COMPONENT_DECLARE(AABB);
+
+// Declare systems
+ECS_SYSTEM_DECLARE(draw_planes);
+ECS_SYSTEM_DECLARE(draw_aabbs);
 
 static bool paused;
 
@@ -59,7 +63,7 @@ void draw_planes(ecs_iter_t *it) {
     Plane *p = ecs_field(it, Plane, 1);
 
     for (int i = 0; i < it->count; ++i) {
-        //draw plane
+        draw_plane(*p, GREEN);
     }
 }
 
@@ -67,7 +71,7 @@ void draw_aabbs(ecs_iter_t *it) {
     AABB *a = ecs_field(it, AABB, 1);
 
     for (int i = 0; i < it->count; ++i) {
-        // Draw aabb
+        draw_aabb(*a, BLUE);
     }
 }
 
@@ -78,8 +82,7 @@ void init(void) {
     SetTargetFPS(60);
     set_line_width(2.0f);
 
-    // Initialise Flecs
-    // TODO: move to a scene setup
+    // Initialize Flecs
     world = ecs_init();
 
     // Initialize components
@@ -88,6 +91,10 @@ void init(void) {
 
     // Initialize tags
     ECS_TAG(world, MainCamera);
+
+    // Initialize systems
+    ECS_SYSTEM_DEFINE(world, draw_planes, EcsOnStore, [in]Plane);
+    ECS_SYSTEM_DEFINE(world, draw_aabbs, EcsOnStore, [in]AABB);
 
     // Create camera
     camera = (Camera3D){
@@ -98,40 +105,37 @@ void init(void) {
             .projection = CAMERA_PERSPECTIVE
     };
 
-    // TODO: move to a game state struct
     paused = true;
 
     // SCENE
     load_basic_scene();
-    // Load resources
 
-
-    // Initialize models
-    Mesh cube_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
-    Material cube_material = LoadMaterialDefault();
-    Shader cube_shader = LoadShader("../assets/shaders/default.vert", "../assets/shaders/default.frag");
-
-    cube_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(cube_shader, "mvp");
-    cube_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(cube_shader, "viewPos");
-    cube_shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(cube_shader, "instanceTransform");
-
-    // Get some required shader locations for lighting
-    cube_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(cube_shader, "viewPos");
-
-    // Ambient light level (some basic lighting)
-    int ambient_loc = GetShaderLocation(cube_shader, "ambient");
-    SetShaderValue(cube_shader, ambient_loc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
-
-    cube_material.shader = cube_shader;
-    Model cube = LoadModelFromMesh(cube_mesh);
-    cube.materials[0] = cube_material;
-    arrput(models, cube);
-    AABB aabb = {.min={-0.5f, -0.5f, - 0.5f},.max={0.5f, 0.5f, 0.5f}};
-    arrput(aabbs, aabb);
-
-    // Initialize Lights
-    lights = calloc(1, sizeof(Light));
-    lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), WHITE, cube_shader);
+//    // Initialize models
+//    Mesh cube_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
+//    Material cube_material = LoadMaterialDefault();
+//    Shader cube_shader = LoadShader("../assets/shaders/default.vert", "../assets/shaders/default.frag");
+//
+//    cube_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(cube_shader, "mvp");
+//    cube_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(cube_shader, "viewPos");
+//    cube_shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(cube_shader, "instanceTransform");
+//
+//    // Get some required shader locations for lighting
+//    cube_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(cube_shader, "viewPos");
+//
+//    // Ambient light level (some basic lighting)
+//    int ambient_loc = GetShaderLocation(cube_shader, "ambient");
+//    SetShaderValue(cube_shader, ambient_loc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
+//
+//    cube_material.shader = cube_shader;
+//    Model cube = LoadModelFromMesh(cube_mesh);
+//    cube.materials[0] = cube_material;
+//    arrput(models, cube);
+//    AABB aabb = {.min={-0.5f, -0.5f, - 0.5f},.max={0.5f, 0.5f, 0.5f}};
+//    arrput(aabbs, aabb);
+//
+//    // Initialize Lights
+//    lights = calloc(1, sizeof(Light));
+//    lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), WHITE, cube_shader);
 }
 
 void processInputs(void) {
@@ -157,11 +161,12 @@ void processInputs(void) {
     }
 }
 
-/// \brief Application loop
 void run(void) {
     // Application loop
     while (!WindowShouldClose()) {
         processInputs();
+
+        const float delta_time = GetFrameTime();
 
         // Draw
         BeginDrawing();
@@ -175,12 +180,9 @@ void run(void) {
             DrawModel(models[i], Vector3Zero(), 1.0f, GRAY);
         }
 
-        if(mouse_hit) {
-            // Draw bounding box
-            // Add overlay to the selected object
-        }
-
-        addRectangleToolDraw();
+        // Draw debug
+        ecs_run(world, ecs_id(draw_planes), delta_time, NULL);
+        ecs_run(world, ecs_id(draw_aabbs), delta_time, NULL);
 
         // Draw scenes
 
@@ -193,7 +195,6 @@ void run(void) {
     }
 }
 
-/// \brief Cleanup application and render layer just before exiting
 void cleanup(void) {
     // Free lights
     free(lights);
