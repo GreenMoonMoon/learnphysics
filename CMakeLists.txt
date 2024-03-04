@@ -35,7 +35,9 @@ if(NOT cglm_POPULATED)
 endif ()
 
 # Make flecs headers available
-include_directories(${flecs_SOURCE_DIR}/include)
+include_directories(${flecs_SOURCE_DIR}/include
+                    ${PROJECT_SOURCE_DIR}/src/
+                    ${PROJECT_SOURCE_DIR}/src/external)
 
 add_executable(learnphysics src/main.c
         src/rigidbody.c
@@ -46,6 +48,8 @@ add_executable(learnphysics src/main.c
         src/tools.c
         src/resources.c
         src/scene.c
+
+        src/graphic/draw_primitive.c
 
         src/raylib_utils.c
         src/gizmos.c)

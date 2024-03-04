@@ -117,9 +117,34 @@ static int lightsCount = 0;    // Current amount of created lights
 // Module Functions Definition
 //----------------------------------------------------------------------------------
 
+Light init_light(int type, Vector3 position, Vector3 target, Color color) {
+    Light light = { 0 };
+
+    if (lightsCount < MAX_LIGHTS)
+    {
+        light.enabled = true;
+        light.type = type;
+        light.position = position;
+        light.target = target;
+        light.color = color;
+
+        // Light exists but isn't initialized
+        // TODO: Light locations should exists independently for each shader?
+        // TODO: check for shader blocks?
+        light.enabledLoc = -1;
+        light.typeLoc = -1;
+        light.positionLoc = -1;
+        light.targetLoc = -1;
+        light.colorLoc = -1;
+
+        lightsCount++;
+    }
+
+    return light;
+}
+
 // Create a light and get shader locations
-Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shader shader)
-{
+Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shader shader) {
     Light light = { 0 };
 
     if (lightsCount < MAX_LIGHTS)
@@ -138,7 +163,7 @@ Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shade
         light.colorLoc = GetShaderLocation(shader, TextFormat("lights[%i].color", lightsCount));
 
         UpdateLightValues(shader, light);
-        
+
         lightsCount++;
     }
 

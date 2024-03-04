@@ -4,4 +4,6 @@
 
 #include "resources.h"
 
-#include "rres"
+#define RRES_IMPLEMENTATION
+#include "rres/rres.h"
+

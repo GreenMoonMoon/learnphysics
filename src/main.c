@@ -18,6 +18,9 @@ static Camera3D camera;
 
 static ecs_world_t *world;
 
+ECS_COMPONENT_DECLARE(Plane);
+ECS_COMPONENT_DECLARE(AABB);
+
 static bool paused;
 
 // static Scene3D basic_scene;
@@ -25,11 +28,48 @@ static Model *models = NULL;
 static Light *lights = NULL;
 static AABB *aabbs = NULL;
 
-const Plane ground_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
-
 static RayPrimitive mouse_ray = { 0 };     // Picking line ray
 static Collision mouse_collision = { 0 };  // Ray collision hit info
 static bool mouse_hit = false;
+
+void load_basic_scene(void) {
+    // Load models
+    // Add a ground
+    ecs_entity_t ground = ecs_new_id(world);
+    Plane ground_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
+    ecs_set(world, ground, Plane, {});
+
+    // Add a few cubes
+    ecs_entity_t cube_a = ecs_new_id(world);
+    ecs_set(world, cube_a, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+    ecs_entity_t cube_b = ecs_new_id(world);
+    ecs_set(world, cube_b, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+    ecs_entity_t cube_c = ecs_new_id(world);
+    ecs_set(world, cube_c, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+    ecs_entity_t cube_d = ecs_new_id(world);
+    ecs_set(world, cube_d, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+    ecs_entity_t cube_e = ecs_new_id(world);
+    ecs_set(world, cube_e, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+
+    // Load lights
+    Light light_a = init_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), WHITE);
+}
+
+void draw_planes(ecs_iter_t *it) {
+    Plane *p = ecs_field(it, Plane, 1);
+
+    for (int i = 0; i < it->count; ++i) {
+        //draw plane
+    }
+}
+
+void draw_aabbs(ecs_iter_t *it) {
+    AABB *a = ecs_field(it, AABB, 1);
+
+    for (int i = 0; i < it->count; ++i) {
+        // Draw aabb
+    }
+}
 
 void init(void) {
     // Initialize window and render layer
@@ -42,7 +82,11 @@ void init(void) {
     // TODO: move to a scene setup
     world = ecs_init();
 
-    // Initialize raylib components
+    // Initialize components
+    ECS_COMPONENT_DEFINE(world, Plane);
+    ECS_COMPONENT_DEFINE(world, AABB);
+
+    // Initialize tags
     ECS_TAG(world, MainCamera);
 
     // Create camera
@@ -58,6 +102,7 @@ void init(void) {
     paused = true;
 
     // SCENE
+    load_basic_scene();
     // Load resources
 
 
@@ -81,7 +126,7 @@ void init(void) {
     Model cube = LoadModelFromMesh(cube_mesh);
     cube.materials[0] = cube_material;
     arrput(models, cube);
-    AABB aabb = {.min={-0.5f, -0.5f, -0.5f},.max={0.5f, 0.5f, 0.5f}};
+    AABB aabb = {.min={-0.5f, -0.5f, - 0.5f},.max={0.5f, 0.5f, 0.5f}};
     arrput(aabbs, aabb);
 
     // Initialize Lights
