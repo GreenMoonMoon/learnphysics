@@ -6,7 +6,7 @@
 #include "cglm/cglm.h"
 #include "rlgl.h"
 
-void draw_plane(Plane plane, const Color color) {
+void plane_draw(Plane plane, Color color) {
     rlPushMatrix();
         // Create rotation matrix from normal
         // Create translation matrix from normal and distance
@@ -46,13 +46,13 @@ void draw_plane(Plane plane, const Color color) {
     rlPopMatrix();
 }
 
-void draw_aabb(AABB aabb, Color color) {
-    float width = aabb.max[0] - aabb.min[0];
-    float height = aabb.max[1] - aabb.min[1];
-    float depth = aabb.max[2] - aabb.min[2];
+void aabb_draw(AABB aabb, Color color, float offset) {
+    float width = aabb.max[0] - aabb.min[0] + offset * 2.0f;
+    float height = aabb.max[1] - aabb.min[1] + offset * 2.0f;
+    float depth = aabb.max[2] - aabb.min[2] + offset * 2.0f;
 
     rlPushMatrix();
-    rlTranslatef(aabb.min[0], aabb.min[1], aabb.min[2]);
+    rlTranslatef(aabb.min[0] - offset, aabb.min[1] - offset, aabb.min[2] - offset);
 
     rlBegin(RL_LINES);
     rlColor4ub(color.r, color.g, color.b, color.a);

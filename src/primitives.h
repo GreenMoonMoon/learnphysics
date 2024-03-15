@@ -26,4 +26,6 @@ typedef struct AABB {
     vec3 max;
 } AABB;
 
+AABB aabb_union(AABB a, AABB b);
+
 #endif //PRIMITIVES_H

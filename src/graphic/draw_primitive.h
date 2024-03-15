@@ -8,8 +8,8 @@
 #include "primitives.h"
 #include "raylib.h"
 
-void draw_plane(Plane plane, Color color);
+void plane_draw(Plane plane, Color color);
 
-void draw_aabb(AABB aabb, Color color);
+void aabb_draw(AABB aabb, Color color, float offset);
 
 #endif //LEARNPHYSICS_DRAW_PRIMITIVE_H

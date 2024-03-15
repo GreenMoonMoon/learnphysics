@@ -48,6 +48,7 @@ add_executable(learnphysics src/main.c
         src/tools.c
         src/resources.c
         src/scene.c
+        src/bvh.c
 
         src/graphic/draw_primitive.c
 

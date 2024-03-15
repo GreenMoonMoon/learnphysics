@@ -5,7 +5,6 @@
 #include "collision.h"
 #include "cglm/cglm.h"
 
-
 bool get_sphere_plane_collision(SphereCollider a, vec3 position, vec4 plane, Collision* out_collision) {
     return false;
 }

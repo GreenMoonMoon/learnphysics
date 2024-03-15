@@ -6,20 +6,21 @@
 #include "flecs.h"
 
 #include "collision.h"
+#include "bvh.h"
 
-#include "tools.h"
 #define STB_DS_IMPLEMENTATION
 #include "utils/stb_ds.h"
 
 #include "graphic/draw_primitive.h"
 
 static Camera3D camera;
-
 static ecs_world_t *world;
+static BVH bvh;
 
 // Declare components
 ECS_COMPONENT_DECLARE(Plane);
 ECS_COMPONENT_DECLARE(AABB);
+ECS_COMPONENT_DECLARE(Color);
 
 // Declare systems
 ECS_SYSTEM_DECLARE(draw_planes);
@@ -43,17 +44,24 @@ void load_basic_scene(void) {
     Plane ground_plane = {.normal = {0.0f, 1.0f, 0.0f}, .distance = 0.0f};
     ecs_set(world, ground, Plane, {});
 
+    // Add BVH to the world
+    bvh_init();
+
     // Add a few cubes
     ecs_entity_t cube_a = ecs_new_id(world);
     ecs_set(world, cube_a, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
     ecs_entity_t cube_b = ecs_new_id(world);
-    ecs_set(world, cube_b, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
-    ecs_entity_t cube_c = ecs_new_id(world);
-    ecs_set(world, cube_c, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
-    ecs_entity_t cube_d = ecs_new_id(world);
-    ecs_set(world, cube_d, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
-    ecs_entity_t cube_e = ecs_new_id(world);
-    ecs_set(world, cube_e, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+    ecs_set(world, cube_b, AABB, {.min = {2.0f, 1.0f, 3.0f}, .max = {3.0f, 2.0f, 5.0f}});
+
+    ecs_entity_t union_ab = ecs_new_id(world);
+    ecs_add(world, union_ab, AABB);
+    *ecs_get_mut(world, union_ab, AABB) = aabb_union(*ecs_get(world, cube_a, AABB), *ecs_get(world, cube_b, AABB));
+    ecs_set(world, union_ab, Color, { 230, 41, 55, 255 });
+
+//    ecs_entity_t cube_d = ecs_new_id(world);
+//    ecs_set(world, cube_d, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
+//    ecs_entity_t cube_e = ecs_new_id(world);
+//    ecs_set(world, cube_e, AABB, {.min = {0.0f, 0.0f, 0.0f}, .max = {1.0f, 1.0f, 1.0f}});
 
     // Load lights
     Light light_a = init_light(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), WHITE);
@@ -63,15 +71,22 @@ void draw_planes(ecs_iter_t *it) {
     Plane *p = ecs_field(it, Plane, 1);
 
     for (int i = 0; i < it->count; ++i) {
-        draw_plane(*p, GREEN);
+        plane_draw(p[i], GREEN);
     }
 }
 
 void draw_aabbs(ecs_iter_t *it) {
     AABB *a = ecs_field(it, AABB, 1);
 
-    for (int i = 0; i < it->count; ++i) {
-        draw_aabb(*a, BLUE);
+    if(ecs_field_is_set(it, 2)) {
+        Color *c = ecs_field(it, Color, 2);
+        for (int i = 0; i < it->count; ++i) {
+            aabb_draw(a[i], c[i], 0.1f);
+        }
+    } else {
+        for (int i = 0; i < it->count; ++i) {
+            aabb_draw(a[i], BLUE, 0.0f);
+        }
     }
 }
 
@@ -88,16 +103,17 @@ void init(void) {
     // Initialize components
     ECS_COMPONENT_DEFINE(world, Plane);
     ECS_COMPONENT_DEFINE(world, AABB);
+    ECS_COMPONENT_DEFINE(world, Color);
 
     // Initialize tags
     ECS_TAG(world, MainCamera);
 
     // Initialize systems
     ECS_SYSTEM_DEFINE(world, draw_planes, EcsOnStore, [in]Plane);
-    ECS_SYSTEM_DEFINE(world, draw_aabbs, EcsOnStore, [in]AABB);
+    ECS_SYSTEM_DEFINE(world, draw_aabbs, EcsOnStore, [in]AABB, ?Color);
 
     // Create camera
-    camera = (Camera3D){
+    camera = (Camera3D) {
             .position = {0.0f, 3.0f, -8.0f},
             .up = {0.0f, 1.0f, 0.0f},
             .target = {0},
@@ -110,32 +126,7 @@ void init(void) {
     // SCENE
     load_basic_scene();
 
-//    // Initialize models
-//    Mesh cube_mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
-//    Material cube_material = LoadMaterialDefault();
-//    Shader cube_shader = LoadShader("../assets/shaders/default.vert", "../assets/shaders/default.frag");
-//
-//    cube_shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(cube_shader, "mvp");
-//    cube_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(cube_shader, "viewPos");
-//    cube_shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(cube_shader, "instanceTransform");
-//
-//    // Get some required shader locations for lighting
-//    cube_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(cube_shader, "viewPos");
-//
-//    // Ambient light level (some basic lighting)
-//    int ambient_loc = GetShaderLocation(cube_shader, "ambient");
-//    SetShaderValue(cube_shader, ambient_loc, (float[4]){ 0.1f, 0.1f, 0.1f, 1.0f }, SHADER_UNIFORM_VEC4);
-//
-//    cube_material.shader = cube_shader;
-//    Model cube = LoadModelFromMesh(cube_mesh);
-//    cube.materials[0] = cube_material;
-//    arrput(models, cube);
-//    AABB aabb = {.min={-0.5f, -0.5f, - 0.5f},.max={0.5f, 0.5f, 0.5f}};
-//    arrput(aabbs, aabb);
-//
-//    // Initialize Lights
-//    lights = calloc(1, sizeof(Light));
-//    lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -2, 1, -2 }, Vector3Zero(), WHITE, cube_shader);
+    // Create the binary tree and sort element into it.
 }
 
 void processInputs(void) {
@@ -174,11 +165,6 @@ void run(void) {
 
         BeginMode3D(camera);
         draw_grid();
-
-        // Draw models
-        for (int i = 0; i < arrlen(models); ++i) {
-            DrawModel(models[i], Vector3Zero(), 1.0f, GRAY);
-        }
 
         // Draw debug
         ecs_run(world, ecs_id(draw_planes), delta_time, NULL);
